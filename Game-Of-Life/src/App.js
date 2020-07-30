@@ -1,9 +1,9 @@
-import React, {useState, useCallback, useRef} from 'react';
+import React, {useState, useCallback, useRef, useEffect} from 'react';
 import produce from 'immer'
 import './App.css';
 import { Button, Box, Container, ButtonGroup } from '@material-ui/core';
 
-const numColumns = 25
+const numColumns = 40
 
 const numRows = 25
 
@@ -31,7 +31,14 @@ function App() {
     return clearGrid()
   });
 
-  const[generation, setGeneration] = useState(0);
+  const[gen, setGen] = useState(0);
+
+  useEffect(() => {
+    if(running){
+      setGen(gen +1)
+      setTimeout(runSimulation, 1000)
+    }
+  },[grid])
 
   const [running, setRunning] = useState(false);
 
@@ -60,13 +67,11 @@ function App() {
                 gridCopy[i][j]  = 0
               } else if (g[i][j] === 0 && neighbors === 3) {
                 gridCopy[i][j] = 1;
-              } else gridCopy[i][j] = gridCopy[i][j];
-          
+              } else gridCopy[i][j] = gridCopy[i][j];        
           }
         }        
       });
     });
-    setGeneration(prev => prev + 1)
     if(runningRef.current) {
         setTimeout(runSimulation, 1000);
     }
@@ -108,21 +113,20 @@ function App() {
     <h1
     style={{
       display: 'flex',
+      justifyContent: 'center', 
+    }}
+    >
+        Conways Game Of Life
+    </h1>
+    <Container
+     style={{
+      display: 'flex',
       textAlign: 'center',
       AlignItems: 'center',
       justifyContent: 'center', 
-  }}
-    >
-      Welcome To The Game Of Life</h1>
-    <Container
-      style={{
-        display: 'flex',
-        textAlign: 'center',
-        AlignItems: 'center',
-        justifyContent: 'center',      
     }}
     >
-        <div 
+      <div 
           style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${numColumns}, 20px)`,
@@ -151,17 +155,25 @@ function App() {
         )}
         </div>
     </Container>
-    <Box
+    <h2
     style={{
       display: 'flex',
-      textAlign: 'center',
-      AlignItems: 'center',
-      justifyContent: 'center',  
-      marginTop: '50px' ,
-      marginBottom: '100px'   
-  }}
+      justifyContent: 'center', 
+    }}
+    > 
+    Generation: {gen} 
+    </h2>
+    <div>
+    <ButtonGroup 
+      variant="contained" 
+      color="primary" 
+      aria-label="contained primary button group" 
+      margin='40px'
+      style={{
+        display: 'flex',
+        justifyContent: 'center', 
+      }}
     >
-      <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" >
         <Button
           onClick={() => {
             setRunning(!running);
@@ -176,6 +188,7 @@ function App() {
         <Button 
         onClick={() => {
           setGrid(clearGrid());
+          setGen(0)
         }}>
           Clear
         </Button>
@@ -191,12 +204,12 @@ function App() {
           Random
         </Button>
         <Button>
-          <h4 width='300px'>Choose A Preset:</h4>
+          <h4>Choose A Preset:</h4>
           {!running && <button onClick={preset1}>Avatar</button>}
           {!running && <button onClick={preset2}>Slider</button>}
         </Button>
       </ButtonGroup>
-    </Box>
+    </div>
   </>
   )
 }
