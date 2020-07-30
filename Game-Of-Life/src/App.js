@@ -1,39 +1,167 @@
-import React, {useState} from 'react';
-import logo from './logo.svg';
+import React, {useState, useCallback, useRef} from 'react';
+import produce from 'immer'
 import './App.css';
+import { Button, Box, Container, ButtonGroup } from '@material-ui/core';
 
-const numColumns = 50
-const numRows = 50
+const numColumns = 25
 
-function App() {
-  const [grid, setGrid] = useState(() => {
-    const rows = [];
+const numRows = 25
+
+const operations = [
+  [0,1],
+  [0,-1],
+  [1,-1],
+  [-1,1],
+  [1,1],
+  [-1,-1],
+  [1,0],
+  [-1,0]
+]
+
+const clearGrid = () => {
+  const rows = [];
     for (let i = 0; i < numRows; i++) {
       rows.push(Array.from(Array(numColumns), () => 0));
     }
+    return rows;
+}
 
-    return rows
+function App() {
+  const [grid, setGrid] = useState(() => {
+    return clearGrid()
   });
 
-  return(
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: `repeat(${numColumns}, 20px)`
-    }}>
-    {grid.map((rows, i) => 
-      rows.map((col, k) => (
+  const[generation, setGeneration] = useState(0);
+
+  const [running, setRunning] = useState(false);
+
+  const runningRef = useRef();
+  
+  runningRef.current = running
+
+  const runSimulation = useCallback(() => {
+    if (!runningRef.current) {
+      return;
+    }
+    setGrid((g) => {
+      return produce(g, gridCopy => {
+        for (let i = 0; i < numRows; i++) {
+          for ( let j = 0; j < numColumns; j++) {
+            let neighbors = 0;
+              operations.forEach(([x, y]) => {
+                const newI = i + x;
+                const newJ = j + y;
+                if (newI >= 0 && newI < numRows && newJ >= 0 && newJ < numColumns) {
+                  neighbors += g[newI][newJ]
+                }
+              })
+
+              if(neighbors < 2 || neighbors > 3) {
+                gridCopy[i][j]  = 0
+              } else if (g[i][j] === 0 && neighbors === 3) {
+                gridCopy[i][j] = 1;
+              } else gridCopy[i][j] = gridCopy[i][j];
+          
+          }
+        }        
+      });
+    });
+    setGeneration(prev => prev + 1)
+    if(runningRef.current) {
+        setTimeout(runSimulation, 1000);
+    }
+  }, [])
+
+  return (
+    <>
+    <h1
+    style={{
+      display: 'flex',
+      textAlign: 'center',
+      AlignItems: 'center',
+      justifyContent: 'center', 
+  }}
+    >
+      Welcome To The Game Of Life</h1>
+    <Container
+      style={{
+        display: 'flex',
+        textAlign: 'center',
+        AlignItems: 'center',
+        justifyContent: 'center',      
+    }}
+    >
         <div 
-          key={`${i}-${k}`}
           style={{
-            width: 20,
-            height: 20, 
-            backgroundColor: grid[i][k] ? 'red': undefined, 
-            border: 'solid 1px black'
-          }} 
-        />
-      ))
-    )}
-  </div>
+            display: 'grid',
+            gridTemplateColumns: `repeat(${numColumns}, 20px)`,
+            AlignItems: 'center',
+            justifyContent: 'center',    
+          }}
+        >
+        {grid.map((rows, i) => 
+          rows.map((col, k) => (
+            <div 
+              key={`${i}-${k}`}
+              onClick={() => {
+                const newGrid = produce(grid, gridCopy => {
+                  gridCopy[i][k] = grid[i][k] ? 0 : 1;
+                })
+                setGrid(newGrid)
+              }}
+              style={{
+                width: 20,
+                height: 20, 
+                backgroundColor: grid[i][k] ? 'red': undefined, 
+                border: 'solid 1.5px black',
+              }} 
+            />
+          ))
+        )}
+        </div>
+    </Container>
+    <Box
+    style={{
+      display: 'flex',
+      textAlign: 'center',
+      AlignItems: 'center',
+      justifyContent: 'center',  
+      marginTop: '50px' ,
+      marginBottom: '100px'   
+  }}
+    >
+      <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" >
+        <Button
+          onClick={() => {
+            setRunning(!running);
+            if (!running) {
+              runningRef.current = true;
+              runSimulation();
+          }}
+            }
+        >
+          {running ? "Stop" : "Start"}
+        </Button>
+        <Button 
+        onClick={() => {
+          setGrid(clearGrid());
+        }}>
+          Clear
+        </Button>
+        <Button 
+          onClick={() => {
+            const rows = [];
+            for (let i = 0; i < numRows; i++) {
+            rows.push(Array.from(Array(numColumns), () => Math.random() > .8 ? 1 : 0));
+            }
+            setGrid(rows)
+            }}
+        >
+          Random
+        </Button>
+      </ButtonGroup>
+    </Box>
+  </>
   )
 }
 
