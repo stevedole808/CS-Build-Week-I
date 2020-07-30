@@ -72,6 +72,37 @@ function App() {
     }
   }, [])
 
+  const preset1 = () => {
+    if(!running) {
+      const gridCopy = produce(grid, grid2 => {
+        grid2[4][2] = 1
+        grid2[5][3] = 1
+        grid2[6][3] = 1
+        grid2[3][3] = 1
+        grid2[4][4] = 1
+        grid2[4][3] = 1
+        grid2[5][1] = 1
+        grid2[5][5] = 1
+        grid2[7][3] = 1
+        grid2[8][3] = 1
+      })
+      setGrid(gridCopy)
+    }
+  }
+
+  const preset2 = () => {
+    if(!running) {
+      const gridCopy = produce(grid, grid2 => {
+        grid2[11][11] = 1
+        grid2[12][11] = 1
+        grid2[13][11] = 1
+        grid2[13][10] = 1
+        grid2[12][9] = 1
+      })
+      setGrid(gridCopy)
+    }
+  }
+
   return (
     <>
     <h1
@@ -158,6 +189,11 @@ function App() {
             }}
         >
           Random
+        </Button>
+        <Button>
+          <h4 width='300px'>Choose A Preset:</h4>
+          {!running && <button onClick={preset1}>Avatar</button>}
+          {!running && <button onClick={preset2}>Slider</button>}
         </Button>
       </ButtonGroup>
     </Box>
