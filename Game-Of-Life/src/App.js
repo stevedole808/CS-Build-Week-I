@@ -2,10 +2,6 @@ import React, {useState, useCallback, useRef, useEffect} from 'react';
 import produce from 'immer'
 import './App.css';
 import { Button, Container, ButtonGroup, makeStyles } from '@material-ui/core';
-import Modal from '@material-ui/core/Modal';
-import Backdrop from '@material-ui/core/Backdrop';
-import Fade from '@material-ui/core/Fade';
-import { Alert } from '@material-ui/lab';
 
 const numColumns = 40
 
@@ -57,15 +53,6 @@ function App() {
   });
 
   const[gen, setGen] = useState(0);
-  const [open, setOpen] = useState(false);
-
-  const handleOpen = () => {
-      setOpen(true);
-  };
-
-  const handleClose = () => {
-      setOpen(false);
-  };
 
   useEffect(() => {
     if(running){
@@ -79,6 +66,22 @@ function App() {
   const runningRef = useRef();
   
   runningRef.current = running
+
+  const [colors] = useState(["#FFA07A", "#FA8072", "#F08080", "#B22222", "#FF0000", "#FF4500"]);
+
+  const changeBackground = () => {
+    const type = colors
+    if (type.length <= 0){
+      return
+    }
+    else if (type.length > 0){
+      const random = type[Math.floor(Math.random() * type.length)];
+      return random
+    }
+    else {
+      return "red"
+    }
+  }
 
   const runSimulation = useCallback(() => {
     if (!runningRef.current) {
@@ -110,7 +113,7 @@ function App() {
         setTimeout(runSimulation, 1000);
     }
   }, [])
-
+  
   const preset1 = () => {
     if(!running) {
       const gridCopy = produce(grid, grid2 => {
@@ -232,7 +235,7 @@ function App() {
               style={{
                 width: 20,
                 height: 20, 
-                backgroundColor: grid[i][k] ? 'red': undefined, 
+                backgroundColor: grid[i][k] ? changeBackground() : undefined, 
                 border: 'solid 1px red',
               }} 
             />
@@ -279,9 +282,7 @@ function App() {
           setGrid(clearGrid());
           setGen(0)
           if (running) {
-            alert(<Alert variant="outlined" severity="error">
-            This is an error alert — check it out!
-          </Alert>)
+            alert("Stop the program before clearing!")
           }
         }}>
           Clear
