@@ -1,7 +1,11 @@
 import React, {useState, useCallback, useRef, useEffect} from 'react';
 import produce from 'immer'
 import './App.css';
-import { Button, Box, Container, ButtonGroup } from '@material-ui/core';
+import { Button, Container, ButtonGroup, makeStyles } from '@material-ui/core';
+import Modal from '@material-ui/core/Modal';
+import Backdrop from '@material-ui/core/Backdrop';
+import Fade from '@material-ui/core/Fade';
+import { Alert } from '@material-ui/lab';
 
 const numColumns = 40
 
@@ -26,12 +30,42 @@ const clearGrid = () => {
     return rows;
 }
 
+const useStyles = makeStyles((theme) => ({
+  modal: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  paper: {
+    backgroundColor: theme.palette.background.paper,
+    border: '2px solid #000',
+    boxShadow: theme.shadows[5],
+    padding: theme.spacing(2, 4, 3),
+  },
+  root: {
+    width: '100%',
+    '& > * + *': {
+      marginTop: theme.spacing(2),
+    },
+  },
+}));
+
 function App() {
+  const classes = useStyles()
   const [grid, setGrid] = useState(() => {
     return clearGrid()
   });
 
   const[gen, setGen] = useState(0);
+  const [open, setOpen] = useState(false);
+
+  const handleOpen = () => {
+      setOpen(true);
+  };
+
+  const handleClose = () => {
+      setOpen(false);
+  };
 
   useEffect(() => {
     if(running){
@@ -108,30 +142,79 @@ function App() {
     }
   }
 
+  const preset3 = () => {
+    if(!running) {
+      const gridCopy = produce(grid, grid2 => {
+        grid2[8][12] = 1
+        grid2[8][14] = 1
+        grid2[9][10] = 1
+        grid2[9][16] = 1
+        grid2[10][11] = 1
+        grid2[10][15] = 1
+        grid2[11][12] = 1
+        grid2[11][13] = 1
+        grid2[11][14] = 1
+      })
+      setGrid(gridCopy)
+    }
+  }
+
   return (
     <>
-    <h1
-    style={{
-      display: 'flex',
-      justifyContent: 'center', 
-    }}
-    >
-        Conways Game Of Life
-    </h1>
-    <Container
-     style={{
-      display: 'flex',
-      textAlign: 'center',
-      AlignItems: 'center',
-      justifyContent: 'center', 
-    }}
-    >
+      <h1
+      style={{
+        display: 'flex',
+        justifyContent: 'center', 
+      }}
+      >
+          Conways Game Of Life
+      </h1>
+      <h3
+      style={{
+        display: 'flex',
+        justifyContent: 'center', 
+      }}
+      >Learn The Rules!</h3>
+      <div>
+        <ul>
+          <li
+          style={{
+            display: 'flex',
+            justifyContent: 'center', 
+          }}>Any live cell with fewer than two live neighbours dies, as if by underpopulation.</li>
+          <li 
+          style={{
+            display: 'flex',
+            justifyContent: 'center', 
+          }}>Any live cell with two or three live neighbours lives on to the next generation.</li>
+          <li
+          style={{
+            display: 'flex',
+            justifyContent: 'center', 
+          }}>Any live cell with more than three live neighbours dies, as if by overpopulation.</li>
+          <li
+          style={{
+            display: 'flex',
+            justifyContent: 'center', 
+          }}>Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.</li>
+        </ul>
+      </div>
+      <Container
+      style={{
+        display: 'flex',
+        textAlign: 'center',
+        AlignItems: 'center',
+        justifyContent: 'center', 
+      }}
+      >
       <div 
           style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${numColumns}, 20px)`,
             AlignItems: 'center',
-            justifyContent: 'center',    
+            justifyContent: 'center',   
+            backgroundColor: 'black',
+            border: '1px solid red'
           }}
         >
         {grid.map((rows, i) => 
@@ -139,16 +222,18 @@ function App() {
             <div 
               key={`${i}-${k}`}
               onClick={() => {
-                const newGrid = produce(grid, gridCopy => {
-                  gridCopy[i][k] = grid[i][k] ? 0 : 1;
-                })
-                setGrid(newGrid)
-              }}
+                if (!running){
+                  const newGrid = produce(grid, gridCopy => {
+                    gridCopy[i][k] = grid[i][k] ? 0 : 1;
+                  })
+                  setGrid(newGrid)
+                }}
+                }
               style={{
                 width: 20,
                 height: 20, 
                 backgroundColor: grid[i][k] ? 'red': undefined, 
-                border: 'solid 1.5px black',
+                border: 'solid 1px red',
               }} 
             />
           ))
@@ -180,7 +265,11 @@ function App() {
             if (!running) {
               runningRef.current = true;
               runSimulation();
-          }}
+              setGen(0)
+          } else {
+            setGen(gen)
+          }
+        }
             }
         >
           {running ? "Stop" : "Start"}
@@ -189,6 +278,11 @@ function App() {
         onClick={() => {
           setGrid(clearGrid());
           setGen(0)
+          if (running) {
+            alert(<Alert variant="outlined" severity="error">
+            This is an error alert — check it out!
+          </Alert>)
+          }
         }}>
           Clear
         </Button>
@@ -205,8 +299,9 @@ function App() {
         </Button>
         <Button>
           <h4>Choose A Preset:</h4>
-          {!running && <button onClick={preset1}>Avatar</button>}
-          {!running && <button onClick={preset2}>Slider</button>}
+          {<button onClick={preset1}>Arrow</button>}
+          {<button onClick={preset2}>Slider</button>}
+          {<button onClick={preset3}>Smile</button>}
         </Button>
       </ButtonGroup>
     </div>
@@ -215,3 +310,5 @@ function App() {
 }
 
 export default App;
+
+
